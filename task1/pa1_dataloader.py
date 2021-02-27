@@ -39,5 +39,5 @@ if __name__ == "__main__":
     images = images.numpy()
     images = images.reshape(16, 1 , 16, 16)
     
-    plt.imshow(images[5].squeeze(), cmap='Greys_r')
-    plt.title(str(labels[5].numpy()))    
+    plt.imshow(images[7].squeeze(), cmap='Greys_r')
+    plt.title(str(labels[7].numpy()))    
