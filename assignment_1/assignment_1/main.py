@@ -13,5 +13,5 @@ def process(conf):
 
 if __name__=="__main__":
     conf = toml.load("../assignment_1/assignment_1/mainconfig.toml")
-    process(conf)
+    process(conf["dataset_training"])
 

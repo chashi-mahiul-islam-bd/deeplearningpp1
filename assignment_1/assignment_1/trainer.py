@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchsummary import summary
-
+import datetime
 from logger import Logger
 from dataset import MnistDataset
 from util_file import model_saving, model_training, model_validation, model_selection, check_load_model
@@ -63,12 +63,12 @@ def saving_model(conf):
     """
     current_model_save_path, best_model_save_path = conf['current_model_save_path'], \
                                                           conf['best_model_save_path']
-    timestamp = conf['timestamp']
+    timestamp = f"{datetime.datetime.now().date()}-{datetime.datetime.now().time()}"
     step = conf['step']
 
     # save best Gen train epoch model
     if conf["train_loss"] < conf['best_train_loss']:
-        conf['best_train_loss'] = conf["train_gen_loss"]
+        conf['best_train_loss'] = conf["train_loss"]
         model_saving(
             conf,
             f"{str(best_model_save_path)}/{timestamp}_best_model_{step}.pt",
@@ -110,12 +110,7 @@ def create_dataset(path, test=False):
     Loaded dataset
 
     """
-    if set(os.listdir(path)) == set(["LR", "HR"]):
-        print("running PairedDataset")
-        # This has to be changed to datasetTrain
-        return MnistDataset(path, test=test)
-    print("Error while creating DataSet")
-    return None
+    return MnistDataset(path, test=test)
 
 
 def dataset_creation(conf):
@@ -132,7 +127,7 @@ def dataset_creation(conf):
 
     use_cuda = torch.cuda.is_available()
     conf["device"] = torch.device("cuda:0" if use_cuda else "cpu")
-    training_set = create_dataset(conf["train_path"], test=True)
+    training_set = create_dataset(conf["train_path"], test=False)
     validation_set = create_dataset(conf["valid_path"], test=True)
 
     conf["training_dataloader"] = DataLoader(training_set, **parameters)
@@ -147,19 +142,22 @@ def train(conf):
     :return:
     """
 
-    conf["model"] = model_selection(conf)
+    conf = model_selection(conf)
     conf["model"] = conf["model"].to(conf["device"])
     conf = check_load_model(conf)
     conf["criterion"] = nn.NLLLoss()
     step = conf["current_epoch"]
-    max_epoch = conf["current_epoch"]
+    max_epoch = conf["max_epochs"]
     logger = Logger(conf["log_dir"])
     summary(conf["model"], (1, 16, 16), -1, "cuda")
 
     # draw the model
-    dummy_input_tensor = torch.from_numpy(np.random.randn(1, 1, 16, 16))
+    dummy_input_tensor = torch.from_numpy(np.random.randn(1, 1, 16, 16)).float()
+    dummy_input_tensor = dummy_input_tensor.to(conf["device"])
     model_draw(logger, conf["model"], dummy_input_tensor)
     del dummy_input_tensor
+
+    conf["best_train_loss"] = float("inf")
 
     while step < max_epoch:
         conf = model_training(conf)
@@ -169,7 +167,9 @@ def train(conf):
 
         print(f"Epoch No: {step}"
               f"training_loss: {conf['train_loss']}"
-              f"validation_loss: {conf['valid loss']}")
+              f"validation_loss: {conf['valid_loss']}")
+        step += 1
+        conf["step"] = step
         saving_model(conf)
 
 

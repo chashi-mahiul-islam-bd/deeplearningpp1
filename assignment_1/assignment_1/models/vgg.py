@@ -43,11 +43,11 @@ class Conv(nn.Module):
         :param stride: The stride value for convolution
         :param padding: The amount of padding required for convolution
         """
-        super.__init__()
+        super().__init__()
         conv_modules = nn.ModuleList()
 
         conv_modules.append(nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding))
-        conv_modules.append(nn.BatchNorm2d())
+        conv_modules.append(nn.BatchNorm2d(out_channels))
         if activation == "tanh":
             conv_modules.append(nn.Tanh())
         elif activation == "sigmoid":
@@ -82,13 +82,13 @@ class VGG(nn.Module):
 
         base_channels = 16, input_channels=1, output_channels=1, image_shape = 16*16
         """
-        super.__init__()
+        super().__init__()
         # [batch_size, 1, 16, 16]
         self.conv_first = nn.Sequential(Conv(in_channels=in_channels, out_channels=base_channels))
         # [batch_size, 16, 16, 16]
 
         conv_base = nn.ModuleList()
-        for _ in n_conv_sections:
+        for _ in range(n_conv_sections):
             conv_base.append(Conv(in_channels=base_channels, out_channels=base_channels*2))
             conv_base.append(ResBlock(base_channels=base_channels*2))
             conv_base.append(nn.MaxPool2d(2, 2))
