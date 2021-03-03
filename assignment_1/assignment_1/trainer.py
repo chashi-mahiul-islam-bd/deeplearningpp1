@@ -158,7 +158,11 @@ def train(conf):
     del dummy_input_tensor
 
     conf["best_train_loss"] = float("inf")
-
+    print()
+    print()
+    print(max_epoch)
+    print()
+    print()
     while step < max_epoch:
         conf = model_training(conf)
         log_loss_summary(logger, conf["train_loss"], step, "train")
@@ -171,5 +175,6 @@ def train(conf):
         step += 1
         conf["step"] = step
         saving_model(conf)
+
 
 

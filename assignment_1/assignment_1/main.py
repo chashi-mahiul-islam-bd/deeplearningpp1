@@ -1,5 +1,6 @@
 import toml
 from trainer import dataset_creation, train
+from tester import predict
 
 
 def process(conf):
@@ -10,8 +11,10 @@ def process(conf):
     """
     conf = dataset_creation(conf)
     train(conf)
+    predict(conf)
+    
 
 if __name__=="__main__":
-    conf = toml.load("../assignment_1/assignment_1/mainconfig.toml")
+    conf = toml.load("../assignment_1/mainconfig.toml")
     process(conf["dataset_training"])
 

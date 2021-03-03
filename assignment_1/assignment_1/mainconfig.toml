@@ -1,13 +1,13 @@
 
 [dataset_training]
-train_path = "../assignment_1/assignment_1/input_dir/train"
-valid_path = "../assignment_1/assignment_1/input_dir/valid"
-save_model_path = "../assignment_1/assignment_1/output_dir/saved_model"
-log_dir = "../assignment_1/assignment_1/output_dir/logger"
+train_path = "../assignment_1/input_dir/train"
+valid_path = "../assignment_1/input_dir/valid"
+save_model_path = "../assignment_1output_dir/saved_model"
+log_dir = "../assignment_1/output_dir/logger"
 learning_rate = 0.001
 momentum = 0.9
 architecture = "vgg"
-max_epochs = 10
+max_epochs = 100
 n_layers = 3
 batch_size = 64
 in_channels = 1
