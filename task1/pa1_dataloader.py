@@ -13,9 +13,11 @@ import matplotlib.pyplot as plt
 # T=[]
 samples = []
 labels = []
-with open("zip_train.txt", "r") as file1:
+with open("zip_test.txt", "r") as file1:
     for line in file1.readlines():
-        f_list = [float(i) for i in line.split(" ") if i!='\n']
+        print(line)
+        f_list = [float(i) for i in line.split() if i!='\n']
+        print(f_list)
         label = np.array([f_list[0]])
         sample = np.array([f_list[1:]])
         samples.append(sample)

@@ -3,7 +3,7 @@ import torch
 from pathlib import Path
 from tqdm import tqdm
 from models import VGG
-
+import os
 
 
 def load_model(model_path, conf):
@@ -75,7 +75,7 @@ def check_load_model(conf):
     # setting current and best model save paths. Creating the directories if not existing
     current_model_path = Path(conf["save_model_path"]) / "current"
     best_model_path = Path(conf["save_model_path"]) / "best"
-    directory_creator(conf["current_model_path"], conf["best_model_path"])
+    directory_creator(current_model_path, best_model_path)
 
     # loading current model
     current_model_list = list(current_model_path.rglob("*.pt"))
@@ -87,13 +87,15 @@ def check_load_model(conf):
     if not current_model_list:
         current_model = ""
     else:
-        current_model = current_model_list[-1]
+        current_model = Path(current_model_list[-1])
     if not best_model_list:
         best_model = ""
     else:
-        best_model = best_model_list[-1]
+        best_model = Path(best_model_list[-1])
 
     # setting the optimizers and scheduler
+    conf["current_model_save_path"] = current_model_path
+    conf["best_model_save_path"] = best_model_path
     conf['optimizer'] = torch.optim.SGD(conf['model'].parameters(), lr=conf["learning_rate"], momentum=conf["momentum"])
     conf['scheduler'] = torch.optim.lr_scheduler.MultiStepLR(conf['optimizer'], [100, 200, 400], gamma=0.5)
     conf["current_model"] = current_model
@@ -101,9 +103,9 @@ def check_load_model(conf):
     conf["current_epoch"] = 0
 
     # load if save model existing
-    if current_model.exists():
+    if os.path.exists(current_model):
         load_model(current_model, conf)
-    elif best_model.exists():
+    elif os.path.exists(best_model):
         load_model(best_model, conf)
 
     for param_group in conf["optimizer"].param_groups:
@@ -144,10 +146,9 @@ def model_training(conf):
     model.train(True)
     with torch.autograd.set_detect_anomaly(True):
         with torch.autograd.set_grad_enabled(True):
-            for batch_idx, sample in enumerate(tqdm(conf["training_generator"])):
+            for batch_idx, sample in enumerate(tqdm(conf["training_dataloader"])):
                 image = sample["image"].to(device)
                 target = sample["target"].to(device)
-
                 conf["optimizer"].zero_grad()
                 image_pred = model(image)
                 loss = criterion(image_pred, target)
@@ -174,8 +175,8 @@ def model_validation(conf):
     model = conf["model"]
     device = conf["device"]
     model.eval()
-    with torch.no_grad:
-        for batch_idx, sample in enumerate(tqdm(conf["training_generator"])):
+    with torch.no_grad():
+        for batch_idx, sample in enumerate(tqdm(conf["validation_dataloader"])):
             image = sample["image"].to(device)
             target = sample["target"].to(device)
             image_pred = model(image)
@@ -184,6 +185,7 @@ def model_validation(conf):
                     (1 / (batch_idx + 1)) * (loss.data - valid_loss)
             )
     conf["valid_loss"] = valid_loss
+    return conf
 
 
 
