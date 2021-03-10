@@ -1,3 +1,4 @@
+import torch.nn as nn
 import numpy as np
 import torch
 from pathlib import Path
@@ -63,7 +64,7 @@ def model_selection(conf):
     """
     if conf["architecture"] == "vgg":
         conf["model"] = VGG(conf["in_channels"], conf["out_channels"], conf["base_channels"],
-                        conf["n_layers"], conf["input_shape"])
+                            conf["n_layers"], conf["input_shape"])
     elif conf["architecture"] == "ensemble":
         conf["model"] = Ensemble_Network(conf["in_channels"], conf["base_channels"], conf["n_layers"],
                                          conf["out_channels"])
@@ -73,6 +74,82 @@ def model_selection(conf):
     elif conf["architecture"] == "fully_connected":
         conf["model"] = Fully_Connected(conf["in_channels"], conf["out_channels"],
                                         conf["base_channels"], conf["n_layers"])
+    return conf
+
+
+def normal_weights(m):
+    """"""
+    if isinstance(m, nn.Conv2d):
+        torch.nn.init.normal_(m.weight, 0.0, 0.02)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
+
+def uniform_weights(m):
+    """"""
+    if isinstance(m, nn.Conv2d):
+        torch.nn.init.uniform_(m.weight, 0.0, 0.02)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
+
+def xavier_uniform_weights(m):
+    """"""
+    if isinstance(m, nn.Conv2d):
+        torch.nn.init.xavier_uniform_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
+
+def xavier_normal_weights(m):
+    """"""
+    if isinstance(m, nn.Conv2d):
+        torch.nn.init.xavier_normal_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
+
+def kaiming_uniform_weights(m):
+    """"""
+    if isinstance(m, nn.Conv2d):
+        torch.nn.init.kaiming_uniform_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
+
+def kaiming_normal_weights(m):
+    """"""
+    if isinstance(m, nn.Conv2d):
+        torch.nn.init.kaiming_normal_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
+
+def weight_initialization(conf):
+    """"""
+    if conf["params"] == "uniform":
+        print("Applying uniform distribution on weights")
+        conf["model"].apply(uniform_weights)
+
+    elif conf["params"] == "normal":
+        print("Applying normal distribution on weights")
+        conf["model"].apply(normal_weights)
+
+    elif conf["params"] == "xavier_uniform":
+        print("Applying xavier uniform distribution on weights")
+        conf["model"].apply(xavier_uniform_weights)
+
+    elif conf["params"] == "xavier_normal":
+        print("Applying xavier normal distribution on weights")
+        conf["model"].apply(xavier_normal_weights)
+
+    elif conf["params"] == "kaiming_uniform":
+        print("Applying kaiming uniform distribution on weights")
+        conf["model"].apply(kaiming_uniform_weights)
+
+    elif conf["params"] == "kaiming_normal":
+        print("Applying kaiming normal distribution on weights")
+        conf["model"].apply(kaiming_normal_weights)
     return conf
 
 
@@ -112,6 +189,7 @@ def check_load_model(conf):
     conf["current_model"] = current_model
     conf["best_model"] = best_model
     conf["current_epoch"] = 0
+    conf = weight_initialization(conf)
 
     # load if save model existing
     if os.path.exists(current_model):
@@ -129,7 +207,7 @@ def model_saving(conf, model_path):
     This function will be used to save the model
     :param conf:
     :param model_path:
-    :return: 
+    :return:
     """
     save_params = {
         "epoch": conf["step"],
@@ -214,5 +292,5 @@ def model_validation(conf):
 
 
 
-    
+
 
