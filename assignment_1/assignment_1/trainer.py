@@ -167,7 +167,9 @@ def train(conf):
 
         print(f"Epoch No: {step}"
               f"training_loss: {conf['train_loss']}"
-              f"validation_loss: {conf['valid_loss']}")
+              f"training_accuracy: {conf['train_accuracy']}"
+              f"validation_loss: {conf['valid_loss']}"
+              f"validation_accuracy: {conf['valid_accuracy']}")
         step += 1
         conf["step"] = step
         saving_model(conf)

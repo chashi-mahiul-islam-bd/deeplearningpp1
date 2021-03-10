@@ -1,8 +1,10 @@
 import numpy as np
 import torch
 from pathlib import Path
+
+from sklearn.metrics import accuracy_score
 from tqdm import tqdm
-from models import VGG
+from models import VGG, Ensemble_Network, Locally_Connected_Network, Fully_Connected
 import os
 
 
@@ -59,9 +61,18 @@ def model_selection(conf):
     :param conf: Configurator
     :return:
     """
-
-    conf["model"] = VGG(conf["in_channels"], conf["out_channels"], conf["base_channels"],
-                        conf["n_conv_sections"], conf["input_shape"])
+    if conf["architecture"] == "vgg":
+        conf["model"] = VGG(conf["in_channels"], conf["out_channels"], conf["base_channels"],
+                        conf["n_layers"], conf["input_shape"])
+    elif conf["architecture"] == "ensemble":
+        conf["model"] = Ensemble_Network(conf["in_channels"], conf["base_channels"], conf["n_layers"],
+                                         conf["out_channels"])
+    elif conf["architecture"] == "locally_connected":
+        conf["model"] = Locally_Connected_Network(conf["in_channels"], conf["out_channels"], conf["base_channels"],
+                                                  conf["n_layers"])
+    elif conf["architecture"] == "fully_connected":
+        conf["model"] = Fully_Connected(conf["in_channels"], conf["out_channels"],
+                                        conf["base_channels"], conf["n_layers"])
     return conf
 
 
@@ -140,6 +151,8 @@ def model_training(conf):
     """
 
     train_loss = 0
+    train_accuracy = 0
+    number_of_elements = 0
     criterion = conf["criterion"]
     model = conf["model"]
     device = conf["device"]
@@ -156,10 +169,13 @@ def model_training(conf):
                 train_loss = train_loss + (
                         (1 / (batch_idx + 1)) * (loss.data - train_loss)
                 )
+                accuracy = accuracy_score(image_pred.argmax(dim=-1).cpu(), target.cpu(), normalize=False)
+                train_accuracy += accuracy
+                number_of_elements += len(target)
                 loss.backward()
                 conf["optimizer"].step()
             conf["scheduler"].step()
-
+    conf["train_accuracy"] = train_accuracy / number_of_elements
     conf["train_loss"] = train_loss
     return conf
 
@@ -171,6 +187,8 @@ def model_validation(conf):
     :return:
     """
     valid_loss = 0
+    valid_accuracy = 0
+    number_of_elements = 0
     criterion = conf["criterion"]
     model = conf["model"]
     device = conf["device"]
@@ -184,6 +202,10 @@ def model_validation(conf):
             valid_loss = valid_loss + (
                     (1 / (batch_idx + 1)) * (loss.data - valid_loss)
             )
+            accuracy = accuracy_score(image_pred.argmax(dim=-1).cpu(), target.cpu(), normalize=False)
+            valid_accuracy += accuracy
+            number_of_elements += len(target)
+    conf["valid_accuracy"] = valid_accuracy / number_of_elements
     conf["valid_loss"] = valid_loss
     return conf
 

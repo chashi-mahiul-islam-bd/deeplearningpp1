@@ -2,18 +2,17 @@
 [dataset_training]
 train_path = "../assignment_1/assignment_1/input_dir/train"
 valid_path = "../assignment_1/assignment_1/input_dir/valid"
-save_model_path = "../assignment_1/assignment_1/output_dir/saved_model"
+save_model_path = "../assignment_1/assignment_1/output_dir/saved_model/ensemble"
 log_dir = "../assignment_1/assignment_1/output_dir/logger"
 learning_rate = 0.001
-momentum = 0.9
-architecture = "vgg"
-max_epochs = 10
-n_layers = 3
+momentum = 0.95
+architecture = "ensemble"
+max_epochs = 100
 batch_size = 64
 in_channels = 1
 out_channels = 10
 base_channels = 8
-n_conv_sections = 2
+n_layers = 2
 input_shape = 16
 dropout = 0
 dropout_factor = 0.3

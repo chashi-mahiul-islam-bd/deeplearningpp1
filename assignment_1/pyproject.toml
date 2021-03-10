@@ -18,6 +18,7 @@ toml = "^0.10.2"
 torchsummary = "^1.5.1"
 tensorboard = "^2.4.1"
 tqdm = "^4.58.0"
+sklearn = "^0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
