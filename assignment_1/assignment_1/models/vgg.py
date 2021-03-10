@@ -401,7 +401,7 @@ class Locally_Connected_Module(nn.Module):
 
         self.conv_layer_n = nn.Sequential(*layer_n)
         self.conv_final = nn.Sequential(Conv(base_channels, base_channels, dropout=dropout, dropout_factor=dropout_factor,
-                                             act="tanh"))
+                                             activation="tanh"))
 
     def forward(self, input_tensor):
         """
@@ -421,7 +421,7 @@ class Locally_Connected_Module(nn.Module):
 class Locally_Connected_Network(nn.Module):
     """"""
     def __init__(self, in_channels, out_channels, base_channels,
-                 n_conv_sections, input_shape, dropout, dropout_factor):
+                 n_conv_sections, input_shape=16, dropout=False, dropout_factor=0.1):
         """
 
         :param in_channels:
@@ -434,10 +434,11 @@ class Locally_Connected_Network(nn.Module):
         """
         super().__init__()
         self.local_connected_module = Locally_Connected_Module(in_channels=in_channels, base_channels=base_channels,
+                                                               n_conv_layers=n_conv_sections,
                                                                dropout=dropout, dropout_factor=dropout_factor,
                                                                input_shape=input_shape)
         base_channels = base_channels * 2 ** n_conv_sections
-        input_shape = input_shape-6 // 2 ** n_conv_sections
+        input_shape = (input_shape-6) // 2 ** n_conv_sections
         linear_list = nn.ModuleList()
         linear_list.append(nn.Linear(base_channels * input_shape * input_shape, 1024))
         linear_list.append(nn.PReLU())
