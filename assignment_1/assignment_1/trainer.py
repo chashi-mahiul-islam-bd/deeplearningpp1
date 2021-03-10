@@ -20,7 +20,7 @@ def log_loss_summary(logger, loss, step, prefix=""):
     :param prefix:
     :return:
     """
-    logger.scalar_summary(prefix + "loss", loss, step)
+    logger.scalar_summary(prefix + "_plot", loss, step)
 
 
 def model_draw(logger, model, input_to_model):
@@ -161,9 +161,11 @@ def train(conf):
 
     while step < max_epoch:
         conf = model_training(conf)
-        log_loss_summary(logger, conf["train_loss"], step, "train")
+        log_loss_summary(logger, conf["train_loss"], step, "training_loss")
+        log_loss_summary(logger, conf['train_accuracy'], step, "training_accuracy")
         conf = model_validation(conf)
-        log_loss_summary(logger, conf["valid_loss"], step, "valid_loss")
+        log_loss_summary(logger, conf["valid_loss"], step, "validation_loss")
+        log_loss_summary(logger, conf['valid_accuracy'], step, "validation_accuracy")
 
         print(f"Epoch No: {step}"
               f"training_loss: {conf['train_loss']}"
