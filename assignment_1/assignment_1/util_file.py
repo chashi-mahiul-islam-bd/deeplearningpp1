@@ -70,9 +70,11 @@ def model_selection(conf):
     elif conf["architecture"] == "locally_connected":
         conf["model"] = Locally_Connected_Network(conf["in_channels"], conf["out_channels"], conf["base_channels"],
                                                   conf["n_layers"])
-    elif conf["architecture"] == "fully_connected":
-        conf["model"] = Fully_Connected(conf["in_channels"], conf["out_channels"],
-                                        conf["base_channels"], conf["n_layers"])
+# =============================================================================
+#     elif conf["architecture"] == "fully_connected":
+#         conf["model"] = Fully_Connected(conf["in_channels"], conf["out_channels"],
+#                                         conf["base_channels"], conf["n_layers"])
+# =============================================================================
     return conf
 
 
