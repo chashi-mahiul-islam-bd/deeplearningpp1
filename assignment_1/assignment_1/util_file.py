@@ -5,7 +5,7 @@ from pathlib import Path
 
 from sklearn.metrics import accuracy_score
 from tqdm import tqdm
-from models import VGG, Ensemble_Network, Locally_Connected_Network, Fully_Connected
+from models import VGG, Ensemble_Network, Locally_Connected_Network, Fully_Connected, LocallyConnected2d
 import os
 
 
@@ -71,11 +71,9 @@ def model_selection(conf):
     elif conf["architecture"] == "locally_connected":
         conf["model"] = Locally_Connected_Network(conf["in_channels"], conf["out_channels"], conf["base_channels"],
                                                   conf["n_layers"])
-# =============================================================================
-#     elif conf["architecture"] == "fully_connected":
-#         conf["model"] = Fully_Connected(conf["in_channels"], conf["out_channels"],
-#                                         conf["base_channels"], conf["n_layers"])
-# =============================================================================
+    elif conf["architecture"] == "fully_connected":
+        conf["model"] = Fully_Connected(conf["in_channels"], conf["out_channels"],
+                                        conf["base_channels"], conf["n_layers"])
     return conf
 
 
@@ -86,11 +84,21 @@ def normal_weights(m):
         if m.bias is not None:
             torch.nn.init.zeros_(m.bias)
 
+    elif isinstance(m, LocallyConnected2d):
+        torch.nn.init.normal_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
 
 def uniform_weights(m):
     """"""
     if isinstance(m, nn.Conv2d):
         torch.nn.init.uniform_(m.weight, 0.0, 0.02)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
+    elif isinstance(m, LocallyConnected2d):
+        torch.nn.init.uniform_(m.weight)
         if m.bias is not None:
             torch.nn.init.zeros_(m.bias)
 
@@ -110,10 +118,20 @@ def xavier_normal_weights(m):
         if m.bias is not None:
             torch.nn.init.zeros_(m.bias)
 
+    elif isinstance(m, LocallyConnected2d):
+        torch.nn.init.xavier_normal_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
 
 def kaiming_uniform_weights(m):
     """"""
     if isinstance(m, nn.Conv2d):
+        torch.nn.init.kaiming_uniform_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
+    elif isinstance(m, LocallyConnected2d):
         torch.nn.init.kaiming_uniform_(m.weight)
         if m.bias is not None:
             torch.nn.init.zeros_(m.bias)
@@ -126,16 +144,21 @@ def kaiming_normal_weights(m):
         if m.bias is not None:
             torch.nn.init.zeros_(m.bias)
 
+    elif isinstance(m, LocallyConnected2d):
+        torch.nn.init.kaiming_normal_(m.weight)
+        if m.bias is not None:
+            torch.nn.init.zeros_(m.bias)
+
 
 def weight_initialization(conf):
     """"""
-    if conf["params"] == "uniform":
-        print("Applying uniform distribution on weights")
-        conf["model"].apply(uniform_weights)
-
-    elif conf["params"] == "normal":
+    if conf["params"] == "normal":
         print("Applying normal distribution on weights")
         conf["model"].apply(normal_weights)
+
+    elif conf["params"] == "uniform":
+        print("Applying normal distribution on weights")
+        conf["model"].apply(uniform_weights)
 
     elif conf["params"] == "xavier_uniform":
         print("Applying xavier uniform distribution on weights")

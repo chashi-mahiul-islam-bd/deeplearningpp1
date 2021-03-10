@@ -167,19 +167,11 @@ def train(conf):
         log_loss_summary(logger, conf["valid_loss"], step, "validation_loss")
         log_loss_summary(logger, conf['valid_accuracy'], step, "validation_accuracy")
 
-# =============================================================================
-#         print(f"Epoch No: {step}"
-#               f"training_loss: {conf['train_loss']}"
-#               f"training_accuracy: {conf['train_accuracy']}"
-#               f"validation_loss: {conf['valid_loss']}"
-#               f"validation_accuracy: {conf['valid_accuracy']}")
-# =============================================================================
-        
-        print("Epoch: {}/{}.. ".format(step, max_epoch),
-              "\nTraining Loss: {:.3f}.. \t".format(conf['train_loss']),
-              "Training Accuracy: {:.3f}.. ".format(conf['train_accuracy']),
-              "\nValidation Loss: {:.3f}.. \t".format(conf['valid_loss']),
-              "Validation Accuracy: {:.3f}".format(conf['valid_accuracy']))
+        print(f"Epoch No: {step}"
+              f"training_loss: {conf['train_loss']}"
+              f"training_accuracy: {conf['train_accuracy']}"
+              f"validation_loss: {conf['valid_loss']}"
+              f"validation_accuracy: {conf['valid_accuracy']}")
         step += 1
         conf["step"] = step
         saving_model(conf)

@@ -119,9 +119,9 @@ class VGG(nn.Module):
         # [batch_size, 1, 16, 16]
         n_conv_sections = min(n_conv_sections, 3)
         self.vgg_conv = nn.Sequential(VGG_Conv(in_channels=in_channels, base_channels=base_channels,
-                                               n_conv_sections=n_conv_sections, input_shape=input_shape))
+                                               n_conv_sections=n_conv_sections))
 
-        base_channels = base_channels // 2**n_conv_sections
+        base_channels = base_channels * 2**n_conv_sections
         input_shape = input_shape // 2**n_conv_sections
         linear_list = nn.ModuleList()
         linear_list.append(nn.Linear(base_channels * input_shape * input_shape, 1024))
