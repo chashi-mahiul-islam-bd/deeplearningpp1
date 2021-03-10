@@ -377,7 +377,7 @@ class LocallyConnected2d(nn.Module):
 
 class Locally_Connected_Module(nn.Module):
     """This architecture is for locally connected without share weight"""
-    def __init__(self, in_channels, base_channels, n_conv_layers, dropout, dropout_factor, input_shape):
+    def __init__(self, in_channels, base_channels, n_conv_layers, dropout=False, dropout_factor=0.1, input_shape=16):
         """
 
         :param in_channels:
@@ -459,6 +459,61 @@ class Locally_Connected_Network(nn.Module):
         input_tensor = self.softmax(self.linear(input_tensor))
         return input_tensor
 
+
+
+class Inception_Res_Module(nn.Module):
+    """"""
+    def __init__(self, base_channels):
+        """
+
+        :param in_channels:
+        :param base_channels:
+        :param layers:
+        """
+        super().__init__()
+        self.conv_first = nn.Sequential(Conv(base_channels, base_channels))
+        self.model_1 = nn.Sequential(ResBlock_Conv(base_channels))
+        self.model_2 = nn.Sequential(ResBlock(base_channels))
+        self.final_conv = nn.Sequential(Conv(base_channels*2, base_channels*2))
+
+    def forward(self, input_tensor):
+        """
+
+        :param input_tensor:
+        :return:
+        """
+        input_tensor = self.conv_first(input_tensor)
+        out_1 = self.model_1(input_tensor)
+        out_2 = self.model_2(input_tensor)
+        out_3 = torch.cat([out_1, out_2], 1)
+        out_3 = self.final_conv(out_3)
+        return out_3
+
+
+class Inception_Res_Network(nn.Module):
+    """"""
+    def __init__(self, in_channels, base_channels, n_layers, dropout=False, dropout_factor=0.1):
+        super().__init__()
+        n_layers = min(n_layers, 3)
+        self.conv_first = nn.Sequential(Conv(in_channels, base_channels, dropout=dropout, dropout_factor=dropout_factor,
+                                             kernel_size=3, stride=1, padding=1))
+        conv_n = nn.ModuleList()
+        for _ in range(n_layers):
+            conv_n.append(Inception_Res_Module(base_channels))
+            conv_n.append(nn.MaxPool2d(2, 2))
+            base_channels = base_channels * 2
+
+        self.conv_n = nn.Sequential(*conv_n)
+
+        self.conv_final = nn.Sequential(Conv(base_channels, base_channels, dropout=dropout,
+                                             dropout_factor=dropout_factor, kernel_size=3, stride=1, padding=1))
+    def forward(self, input_tensor):
+        input_tensor = self.conv_first(input_tensor)
+        input_tensor = self.conv_n(input_tensor)
+        input_tensor = self.conv_final(input_tensor)
+        return input_tensor
+
+
 class Ensemble_Network(nn.Module):
     """"""
     def __init__(self, in_channels, base_channels, layers, out_channels, vgg_dropout=False, inception_dropout=False,
@@ -485,8 +540,10 @@ class Ensemble_Network(nn.Module):
         self.inception_conv = nn.Sequential(Inception_Model(in_channels, base_channels, layers,
                                                             inception_dropout, inception_dropout_factor))
         self.rrdb_conv = nn.Sequential(RRDB(in_channels, base_channels, layers, rrdb_dropout, rrdb_dropout_factor))
+        self.inception_res = nn.Sequential(Inception_Res_Network(in_channels, base_channels, layers
+                                                                 ))
 
-        base_channels = base_channels * 2**min(layers, 3) * 3
+        base_channels = base_channels * 2**min(layers, 3) * 4
         input_shape = input_shape // 2**min(layers, 3)
 
         linear_list = nn.ModuleList()
@@ -502,14 +559,12 @@ class Ensemble_Network(nn.Module):
         out_1 = self.vgg_conv(input_tensor)
         out_2 = self.inception_conv(input_tensor)
         out_3 = self.rrdb_conv(input_tensor)
+        out_4 = self.inception_res(input_tensor)
 
-        out = torch.cat([out_1, out_2, out_3], 1)
+        out = torch.cat([out_1, out_2, out_3, out_4], 1)
         out = out.view(input_tensor.size(0), -1)
         out = self.softmax(self.linear(out))
         return out
-
-
-
 
 
 
